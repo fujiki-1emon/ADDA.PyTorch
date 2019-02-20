@@ -7,12 +7,15 @@ from torchvision.datasets import SVHN, MNIST
 from torchvision import transforms
 
 from models import CNN, Discriminator
-from trainer import train_source_cnn, train_target_cnn
+from trainer import train_target_cnn
+from utils import get_logger
 
 
 def run(args):
     if not os.path.exists(args.logdir):
         os.makedirs(args.logdir)
+    logger = get_logger(os.path.join(args.logdir, 'main.log'))
+    logger.info(args)
 
     # data
     source_transform = transforms.Compose([
