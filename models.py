@@ -7,6 +7,8 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, 20, kernel_size=5, stride=1)
         self.conv2 = nn.Conv2d(20, 50, kernel_size=5, stride=1)
+        self.bn1 = nn.BatchNorm2d(20)
+        self.bn2 = nn.BatchNorm2d(50)
         # self.conv3 = nn.Conv2d(16, 120, kernel_size=4, stride=1)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.relu = nn.ReLU()
@@ -20,12 +22,13 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         bs = x.size(0)
-        x = self.pool(self.relu(self.conv1(x)))
-        x = self.pool(self.relu(self.conv2(x)))
+        x = self.pool(self.relu(self.bn1(self.conv1(x))))
+        x = self.pool(self.relu(self.bn2(self.conv2(x))))
         # x = self.dropout1(self.relu(self.conv3(x)))
         # x = self.relu(self.conv3(x))
         x = x.view(bs, -1)
-        x = self.dropout(self.fc(x))
+        x = self.dropout(x)
+        x = self.fc(x)
         return x
 
 
