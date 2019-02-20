@@ -108,7 +108,7 @@ def adversarial(
         D_output_target = discriminator(D_input_target)
         d_loss_source = d_criterion(D_output_source, D_target_source)
         d_loss_target = d_criterion(D_output_target, D_target_target)
-        d_loss = 0.5 * (d_loss_source + d_loss_target)
+        d_loss = d_loss_source + d_loss_target
         d_optimizer.zero_grad()
         d_loss.backward(retain_graph=True)
         d_optimizer.step()
