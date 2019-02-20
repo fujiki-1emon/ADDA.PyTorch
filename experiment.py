@@ -26,8 +26,6 @@ def run(args):
     ])
     source_dataset_train = SVHN(
         './input', 'train', transform=source_transform, download=True)
-    source_dataset_test = SVHN(
-        './input', 'test', transform=source_transform, download=True)
     target_dataset_train = MNIST(
         './input', 'train', transform=target_transform, download=True)
     target_dataset_test = MNIST(
@@ -35,9 +33,6 @@ def run(args):
     source_train_loader = DataLoader(
         source_dataset_train, args.batch_size, shuffle=True,
         drop_last=True,
-        num_workers=args.n_workers)
-    source_test_loader = DataLoader(
-        source_dataset_test, args.batch_size, shuffle=False,
         num_workers=args.n_workers)
     target_train_loader = DataLoader(
         target_dataset_train, args.batch_size, shuffle=True,
@@ -52,27 +47,19 @@ def run(args):
     if os.path.isfile(args.trained):
         c = torch.load(args.trained)
         source_cnn.load_state_dict(c['model'])
-        print('Loaded `{}`'.format(args.trained))
-    else:
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(
-            source_cnn.parameters(),
-            lr=args.lr, weight_decay=args.weight_decay)
-        source_cnn = train_source_cnn(
-            source_cnn, source_train_loader, source_test_loader,
-            criterion, optimizer, args=args)
+        logger.info('Loaded `{}`'.format(args.trained))
 
     # train target CNN
     target_cnn = CNN(in_channels=args.in_channels, target=True).to(args.device)
     target_cnn.load_state_dict(source_cnn.state_dict())
     discriminator = Discriminator(args=args).to(args.device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.RMSprop(  # optim.Adam(
+    optimizer = optim.Adam(
         target_cnn.encoder.parameters(),
-        lr=args.lr, weight_decay=args.weight_decay)
-    d_optimizer = optim.RMSprop(  # optim.Adam(
+        lr=args.lr, betas=args.betas, weight_decay=args.weight_decay)
+    d_optimizer = optim.Adam(
         discriminator.parameters(),
-        lr=args.lr, weight_decay=args.weight_decay)
+        lr=args.lr, betas=args.betas, weight_decay=args.weight_decay)
     train_target_cnn(
         source_cnn, target_cnn, discriminator,
         criterion, optimizer, d_optimizer,
